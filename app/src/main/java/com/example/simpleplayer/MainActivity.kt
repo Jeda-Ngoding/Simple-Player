@@ -12,6 +12,8 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.lang.Exception
+import java.util.Timer
+import kotlin.concurrent.schedule
 
 
 class MainActivity : AppCompatActivity() {
@@ -26,23 +28,40 @@ class MainActivity : AppCompatActivity() {
 
         setMqttCallback()
 
-        findViewById<Button>(R.id.btnPub).setOnClickListener(View.OnClickListener {
-            var snackbarMsg: String
+        findViewById<Button>(R.id.btnPub).setOnClickListener {
             var topic = findViewById<EditText>(R.id.editTextPubTopic).text.toString().trim()
             val payload = findViewById<EditText>(R.id.editTextMsgPayload).text.toString()
-            if (topic.toString() != "") {
-                snackbarMsg = try {
-                    mqttClient.publish(topic, payload, 0)
-                    "Published to topic '$topic'"
-                } catch (ex: MqttException) {
-                    ex.printStackTrace().toString()
-                }
+            if (topic.isNotEmpty()) {
+                println(
+                    try {
+                        mqttClient.publish(topic, payload, 0)
+                        "Published to topic '$topic'"
+                    } catch (ex: MqttException) {
+                        ex.printStackTrace().toString()
+                    }
+                )
+            }
+        }
+
+        findViewById<Button>(R.id.btnSub).setOnClickListener(View.OnClickListener {
+            val topic = findViewById<EditText>(R.id.editTextSubTopic).text.toString().trim()
+            if (topic.isNotEmpty()) {
+                println(
+                    try {
+                        mqttClient.subscribe(topic)
+                        "Subscribed to topic '$topic'"
+                    } catch (ex: MqttException) {
+                        "Error subscribing to topic: $topic"
+                    }
+                )
             }
         })
 
-        findViewById<Button>(R.id.btnSub).setOnClickListener(View.OnClickListener {
-
-        })
+        Timer("CheckMqttConnection", false).schedule(3000) {
+            if (!mqttClient.isConnected()) {
+                println("MQTT Connection failed !!!")
+            }
+        }
 
     }
 
