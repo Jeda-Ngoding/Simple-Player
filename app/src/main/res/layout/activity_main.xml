@@ -6,6 +6,14 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="visible">
+
+    </com.google.android.exoplayer2.ui.StyledPlayerView>
+
     <TextView
         android:id="@+id/headingMsgPayload"
         android:layout_width="wrap_content"

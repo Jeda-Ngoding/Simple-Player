@@ -1,10 +1,12 @@
 package com.example.simpleplayer
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
@@ -12,6 +14,7 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import java.lang.Exception
+import java.util.Calendar
 import java.util.Timer
 import kotlin.concurrent.schedule
 
@@ -58,8 +61,11 @@ class MainActivity : AppCompatActivity() {
         })
 
         Timer("CheckMqttConnection", false).schedule(3000) {
+            println("MQTT Check Connection !!!")
             if (!mqttClient.isConnected()) {
                 println("MQTT Connection failed !!!")
+            } else {
+                println("MQTT Connected !!!")
             }
         }
 
@@ -79,9 +85,17 @@ class MainActivity : AppCompatActivity() {
                     .setAction("Action", null).show()
             }
 
+            @SuppressLint("SetTextI18n", "CutPasteId")
             @Throws(Exception::class)
             override fun messageArrived(topic: String?, message: MqttMessage?) {
                 Log.w("Debug", "Message received from host '$MQTT_HOST': $message")
+                findViewById<TextView>(R.id.textViewNumMsgs).text =
+                    ("${findViewById<TextView>(R.id.textViewNumMsgs).text.toString().toInt() + 1}")
+                val str: String =
+                    "------------" + Calendar.getInstance().time + "-------------\n$message\n${
+                        findViewById<TextView>(R.id.textViewMsgPayload).text
+                    }"
+                findViewById<TextView>(R.id.textViewMsgPayload).text = str
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
