@@ -3,8 +3,6 @@ package com.example.simpleplayer
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
-import android.widget.Button
-import android.widget.EditText
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
@@ -28,8 +26,8 @@ class MainActivity : AppCompatActivity() {
     private var mPlayer: SimpleExoPlayer? = null
     private lateinit var playerView: PlayerView
 
-    private val videoURL =
-        "https://media.geeksforgeeks.org/wp-content/uploads/20201217163353/Screenrecorder-2020-12-17-16-32-03-350.mp4"
+    private val videoURL = "https://api.wowlite.interadsdev.com/locate/assets/eyJpdiI6IkZLSW9FMkdKQi9rNWNncnc3S2wydkE9PSIsInZhbHVlIjoiRTA0Qi9Wdk5HTHFQcVdXNFIyTnZWeXQrTTBOQlFZTUNvellQaXlsWUJwL2M0Q3hEWUxPcVlITmJyaFNHWkRtTUtZdVZIUFU4Z0ZPdG11ejZoOVdXWHpsSHQzQVhmK2NQaHd5SjRnbXF6VzA9IiwibWFjIjoiNjljZGExNDE4M2IyMTA3ZDE2MTkxMDZjMmNjOGJiYjZjYWE1M2I2ZjNkMGE3ZTM2NDIyYzIxNmE4ZDQ1ZTIxOSIsInRhZyI6IiJ9"
+//    private val videoURL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
     private val mqttClient by lazy {
         MQTTClientHelper(this)
@@ -83,6 +81,8 @@ class MainActivity : AppCompatActivity() {
             //setting exoplayer when it is ready.
             mPlayer!!.playWhenReady = true
 
+            mPlayer!!.playbackLooper
+
             // Set the media source to be played.
             mPlayer!!.setMediaSource(buildMediaSource())
 
@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity() {
             mPlayer!!.prepare()
 
             mPlayer!!.play()
+
         } catch (ex: Exception) {
             ex.printStackTrace()
         }
