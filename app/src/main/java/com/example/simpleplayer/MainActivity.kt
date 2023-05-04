@@ -4,13 +4,6 @@ import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
 import com.google.android.material.snackbar.Snackbar
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
@@ -23,22 +16,17 @@ import kotlin.concurrent.schedule
 
 class MainActivity : AppCompatActivity() {
 
-    private var mPlayer: SimpleExoPlayer? = null
-    private lateinit var playerView: PlayerView
-
-    private val videoURL = "https://api.wowlite.interadsdev.com/locate/assets/eyJpdiI6IkZLSW9FMkdKQi9rNWNncnc3S2wydkE9PSIsInZhbHVlIjoiRTA0Qi9Wdk5HTHFQcVdXNFIyTnZWeXQrTTBOQlFZTUNvellQaXlsWUJwL2M0Q3hEWUxPcVlITmJyaFNHWkRtTUtZdVZIUFU4Z0ZPdG11ejZoOVdXWHpsSHQzQVhmK2NQaHd5SjRnbXF6VzA9IiwibWFjIjoiNjljZGExNDE4M2IyMTA3ZDE2MTkxMDZjMmNjOGJiYjZjYWE1M2I2ZjNkMGE3ZTM2NDIyYzIxNmE4ZDQ1ZTIxOSIsInRhZyI6IiJ9"
-//    private val videoURL = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
-
     private val mqttClient by lazy {
         MQTTClientHelper(this)
+    }
+
+    private val videoPlayer by lazy {
+        VideoPlayer(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        //get PlayerView by its id
-        playerView = findViewById(R.id.playerView)
 
         setMqttCallback()
 
@@ -60,8 +48,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        initPlayer()
-
     }
 
     override fun onDestroy() {
@@ -69,59 +55,31 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun initPlayer() {
-
-        try {
-            // Create a player instance.
-            mPlayer = SimpleExoPlayer.Builder(this).build()
-
-            // Bind the player to the view.
-            playerView.player = mPlayer
-
-            //setting exoplayer when it is ready.
-            mPlayer!!.playWhenReady = true
-
-            mPlayer!!.playbackLooper
-
-            // Set the media source to be played.
-            mPlayer!!.setMediaSource(buildMediaSource())
-
-            // Prepare the player.
-            mPlayer!!.prepare()
-
-            mPlayer!!.play()
-
-        } catch (ex: Exception) {
-            ex.printStackTrace()
-        }
-
-    }
-
     override fun onStart() {
         super.onStart()
         if (Util.SDK_INT >= 24) {
-            initPlayer()
+            videoPlayer.initPlayer()
         }
     }
 
     override fun onResume() {
         super.onResume()
-        if (Util.SDK_INT < 24 || mPlayer == null) {
-            initPlayer()
+        if (Util.SDK_INT < 24) {
+            videoPlayer.initPlayer()
         }
     }
 
     override fun onPause() {
         super.onPause()
         if (Util.SDK_INT < 24) {
-            releasePlayer()
+            videoPlayer.releasePlayer()
         }
     }
 
     override fun onStop() {
         super.onStop()
         if (Util.SDK_INT >= 24) {
-            releasePlayer()
+            videoPlayer.releasePlayer()
         }
     }
 
@@ -151,25 +109,5 @@ class MainActivity : AppCompatActivity() {
             }
 
         })
-    }
-
-    private fun releasePlayer() {
-        if (mPlayer == null) {
-            return
-        }
-        //release player when done
-        mPlayer!!.release()
-        mPlayer = null
-    }
-
-    //creating mediaSource
-    private fun buildMediaSource(): MediaSource {
-        // Create a data source factory.
-        val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
-
-        // Create a progressive media source pointing to a stream uri.
-
-        return ProgressiveMediaSource.Factory(dataSourceFactory)
-            .createMediaSource(MediaItem.fromUri(videoURL))
     }
 }
