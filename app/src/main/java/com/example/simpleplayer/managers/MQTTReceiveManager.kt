@@ -28,7 +28,7 @@ class MQTTReceiveManager(context: Context, topic: String, data: Any) {
     private fun setAction(){
         when (mAction) {
             MQTT_ACTION_CONTENT_DOWNLOAD -> {
-                DownloadContent(mContext)
+                DownloadContent(mContext, mData)
             }
 
             MQTT_ACTION_CONTENT_PLAY -> {

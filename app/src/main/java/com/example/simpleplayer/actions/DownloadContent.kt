@@ -2,12 +2,20 @@ package com.example.simpleplayer.actions
 
 import android.content.Context
 import android.util.Log
+import org.json.JSONObject
 
-class DownloadContent(context: Context) {
+class DownloadContent(context: Context, data: Any) {
+
+    private val mContext: Context
+    private val mData: Any
+
     init {
-        Log.d(TAG,"Test Download Content")
+        mContext = context
+        mData = JSONObject(data.toString())
+        Log.d(TAG, "Data : $mData")
     }
-    companion object{
+
+    companion object {
         const val TAG = "DOWNLOAD_CONTENT"
     }
 
