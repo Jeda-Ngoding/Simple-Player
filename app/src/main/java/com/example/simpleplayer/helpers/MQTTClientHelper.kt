@@ -1,11 +1,11 @@
-package com.example.simpleplayer
+package com.example.simpleplayer.helpers
 
 import android.content.Context
 import android.util.Log
+import com.example.simpleplayer.constants.*
 import org.eclipse.paho.android.service.MqttAndroidClient
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions
 import org.eclipse.paho.client.mqttv3.IMqttActionListener
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.IMqttToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttClient
@@ -14,41 +14,13 @@ import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
 
 class MQTTClientHelper(context: Context) {
-
-    companion object {
-        const val TAG = "MQTT_CLIENT_HELPER"
-    }
-
-    var mqttAndroidClient: MqttAndroidClient
-    val serverUri = MQTT_HOST
+    private var mqttAndroidClient: MqttAndroidClient
+    private val serverUri = MQTT_HOST
     private val clientID: String = MqttClient.generateClientId()
-
-    fun setCallback(callback: MqttCallbackExtended?) {
-        mqttAndroidClient.setCallback(callback)
-    }
 
     init {
         mqttAndroidClient = MqttAndroidClient(context, serverUri, clientID)
-        mqttAndroidClient.setCallback(object : MqttCallbackExtended {
-            override fun connectionLost(cause: Throwable?) {}
 
-            @Throws(Exception::class)
-            override fun messageArrived(topic: String?, message: MqttMessage?) {
-                Log.w(TAG, message.toString())
-            }
-
-            override fun deliveryComplete(token: IMqttDeliveryToken?) {}
-
-            override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                Log.w(TAG, serverURI.toString())
-            }
-
-        })
-
-        connect()
-    }
-
-    private fun connect() {
         val mqttConnectOptions = MqttConnectOptions()
         mqttConnectOptions.isAutomaticReconnect = MQTT_CONNECTION_RECONNECT
         mqttConnectOptions.isCleanSession = MQTT_CONNECTION_CLEAN_SESSION
@@ -76,6 +48,10 @@ class MQTTClientHelper(context: Context) {
         } catch (ex: MqttException) {
             ex.printStackTrace()
         }
+    }
+
+    fun setCallback(callback: MqttCallbackExtended?) {
+        mqttAndroidClient.setCallback(callback)
     }
 
     fun subscribe(subscriptionTopic: String, qos: Int = 0) {
@@ -116,4 +92,9 @@ class MQTTClientHelper(context: Context) {
         mqttAndroidClient.unregisterResources()
         mqttAndroidClient.disconnect()
     }
+
+    companion object {
+        const val TAG = "MQTT_CLIENT_HELPER"
+    }
+
 }

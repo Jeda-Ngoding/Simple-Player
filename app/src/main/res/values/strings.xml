@@ -8,4 +8,6 @@
     <string name="subscribe_to_topic">Subscribe to topic</string>
     <string name="message_payload">Message payload</string>
     <string name="heading_msg_payload"><u>Received Message payloads</u></string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

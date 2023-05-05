@@ -1,11 +1,11 @@
 package com.example.simpleplayer
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.exoplayer2.util.Util
-import com.google.android.material.snackbar.Snackbar
+import com.example.simpleplayer.constants.*
+import com.example.simpleplayer.helpers.MQTTClientHelper
+import com.example.simpleplayer.managers.MQTTReceiveManager
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttException
@@ -20,33 +20,11 @@ class MainActivity : AppCompatActivity() {
         MQTTClientHelper(this)
     }
 
-    private val videoPlayer by lazy {
-        VideoPlayer(this)
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         setMqttCallback()
-
-        Timer("CheckMqttConnection", false).schedule(3000) {
-            if (!mqttClient.isConnected()) {
-                val snackbarMsg = "Failed connect to host:\n'$MQTT_HOST'."
-                Snackbar.make(findViewById(android.R.id.content), snackbarMsg, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
-            } else {
-                try {
-                    mqttClient.subscribe(MQTT_TOPIC_SUBSCRIBE.trim())
-                    Log.d("MAIN", "Subscribed to topic '$MQTT_TOPIC_SUBSCRIBE'")
-                } catch (ex: MqttException) {
-                    Log.d(
-                        "MAIN",
-                        "Error subscribing to topic: $MQTT_TOPIC_SUBSCRIBE + : ${ex.printStackTrace()}"
-                    )
-                }
-            }
-        }
 
     }
 
@@ -55,59 +33,46 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    override fun onStart() {
-        super.onStart()
-        if (Util.SDK_INT >= 24) {
-            videoPlayer.initPlayer()
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (Util.SDK_INT < 24) {
-            videoPlayer.initPlayer()
-        }
-    }
-
-    override fun onPause() {
-        super.onPause()
-        if (Util.SDK_INT < 24) {
-            videoPlayer.releasePlayer()
-        }
-    }
-
-    override fun onStop() {
-        super.onStop()
-        if (Util.SDK_INT >= 24) {
-            videoPlayer.releasePlayer()
-        }
-    }
-
     private fun setMqttCallback() {
         mqttClient.setCallback(object : MqttCallbackExtended {
             override fun connectionLost(cause: Throwable?) {
-                val snackbarMsg = "Connection to host lost:\n'$MQTT_HOST'"
-                Log.w("Debug", snackbarMsg)
-                Snackbar.make(findViewById(android.R.id.content), snackbarMsg, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+                Log.w(TAG, "Connection to host lost:\n'$MQTT_HOST'")
             }
 
-            @SuppressLint("SetTextI18n", "CutPasteId")
             @Throws(Exception::class)
-            override fun messageArrived(topic: String?, message: MqttMessage?) {
-                Log.w("Debug", "Message received from host '$MQTT_HOST': $message")
+            override fun messageArrived(topic: String, message: MqttMessage) {
+                MQTTReceiveManager(this@MainActivity, topic, message)
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
-                Log.w("Debug", "Message published to host '$MQTT_HOST'")
+                Log.w(TAG, "Message published to host $MQTT_HOST")
             }
 
             override fun connectComplete(reconnect: Boolean, serverURI: String?) {
-                val snackbarMsg = "Connected to host:\n'$MQTT_HOST'."
-                Snackbar.make(findViewById(android.R.id.content), snackbarMsg, Snackbar.LENGTH_LONG)
-                    .setAction("Action", null).show()
+                Log.w(TAG, "Connected to host: $MQTT_HOST'")
             }
 
         })
+
+        Timer(MQTT_CHECK_CONNECTION, false).schedule(3000) {
+            if (!mqttClient.isConnected()) {
+                Log.w(TAG, "Failed connect to host '$MQTT_HOST'")
+            } else {
+                try {
+                    mqttClient.subscribe(MQTT_TOPIC_SUBSCRIBE.trim())
+                    Log.d(TAG, "Subscribed to topic '$MQTT_TOPIC_SUBSCRIBE'")
+                } catch (ex: MqttException) {
+                    Log.d(
+                        TAG,
+                        "Error subscribing to topic: $MQTT_TOPIC_SUBSCRIBE + : ${ex.printStackTrace()}"
+                    )
+                }
+            }
+        }
+    }
+
+    companion object {
+        const val TAG = "MAIN_ACTIVITY"
+        const val MQTT_CHECK_CONNECTION = "MQTT_CHECK_CONNECTION"
     }
 }
