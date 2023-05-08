@@ -6,13 +6,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.example.simpleplayer.R
-import com.google.ads.interactivemedia.v3.api.AdErrorEvent
-import com.google.ads.interactivemedia.v3.api.AdEvent
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.ui.StyledPlayerView
 
 
-class PlayerFragment : Fragment(), Player.Listener,
-    AdErrorEvent.AdErrorListener, AdEvent.AdEventListener {
+class PlayerFragment : Fragment(),StyledPlayerView.ControllerVisibilityListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,11 +27,7 @@ class PlayerFragment : Fragment(), Player.Listener,
 
     }
 
-    override fun onAdError(p0: AdErrorEvent) {
-        TODO("Not yet implemented")
-    }
-
-    override fun onAdEvent(p0: AdEvent) {
+    override fun onVisibilityChanged(visibility: Int) {
         TODO("Not yet implemented")
     }
 }
