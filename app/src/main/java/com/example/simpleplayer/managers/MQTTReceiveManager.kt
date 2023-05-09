@@ -1,14 +1,15 @@
 package com.example.simpleplayer.managers
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.util.Log
 import com.example.simpleplayer.actions.DownloadContent
-import com.example.simpleplayer.actions.SetContent
 import com.example.simpleplayer.constants.*
 import org.json.JSONArray
 import org.json.JSONObject
 
-class MQTTReceiveManager(context: Context, topic: String, data: Any) {
+class MQTTReceiveManager(context: Context, topic: String, data: Any) : BroadcastReceiver() {
 
     private var mContext: Context
     private var mTopic: String
@@ -36,16 +37,17 @@ class MQTTReceiveManager(context: Context, topic: String, data: Any) {
             ) {
                 override fun onDownloadProgress(
                     fileName: String,
-                    rogressFile: Long,
+                    progressFile: Int,
                     progressPercent: Long,
                     totalFile: Int
                 ) {
 
                 }
 
+
                 override fun onDownloadNext(
                     fileName: String,
-                    rogressFile: Long,
+                    progressFile: Int,
                     progressPercent: Long,
                     totalFile: Int
                 ) {
@@ -58,32 +60,26 @@ class MQTTReceiveManager(context: Context, topic: String, data: Any) {
 
             }
 
+            MQTT_ACTION_CONTENT_PLAYLIST -> {
+                Log.d(TAG, "Topic : $mTopic - Action : $mAction == $MQTT_ACTION_CONTENT_PLAYLIST")
+            }
+
             MQTT_ACTION_CONTENT_PLAY -> {
-                FragmentManager(mContext, "")
+                Log.d(TAG, "Topic : $mTopic - Action : $mAction == $MQTT_ACTION_CONTENT_PLAY")
+                FragmentManagers(mContext, FRAGMENT_PLAYER)
             }
 
             MQTT_ACTION_CONTENT_STOP -> {
-                FragmentManager(mContext, "")
-            }
-
-            "" -> object : SetContent(mContext) {
-                override fun test1() {
-                    TODO("Not yet implemented")
-                }
-
-                override fun test2() {
-                    TODO("Not yet implemented")
-                }
-
-                override fun test3() {
-                    TODO("Not yet implemented")
-                }
-
+                Log.d(TAG, "Topic : $mTopic - Action : $mAction == $MQTT_ACTION_CONTENT_STOP")
             }
         }
     }
 
     companion object {
         const val TAG = "MQTT_RECEIVE_MANAGER"
+    }
+
+    override fun onReceive(context: Context?, intent: Intent?) {
+        Log.d(TAG, "On Receive ${context.toString()} - ${intent.toString()}")
     }
 }

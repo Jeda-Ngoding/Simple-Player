@@ -3,13 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.PlayerFragment">
+    tools:context=".fragments.HomeFragment">
 
-
-    <com.google.android.exoplayer2.ui.StyledPlayerView
+    <!-- TODO: Update blank fragment layout -->
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/player_exo"/>
-
+        android:text="@string/hello_blank_fragment" />
 
 </FrameLayout>

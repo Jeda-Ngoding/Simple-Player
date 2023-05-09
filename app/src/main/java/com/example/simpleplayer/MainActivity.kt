@@ -41,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 
             @Throws(Exception::class)
             override fun messageArrived(topic: String, message: MqttMessage) {
+                Log.d(TAG, "MQTT Message Arrived : Topic : $topic - Message : $message")
                 MQTTReceiveManager(this@MainActivity, topic, message)
             }
 
