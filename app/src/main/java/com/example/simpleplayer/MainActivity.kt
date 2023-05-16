@@ -3,13 +3,19 @@ package com.example.simpleplayer
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
+import androidx.fragment.app.FragmentTransaction
 import com.example.simpleplayer.constants.*
+import com.example.simpleplayer.fragments.PlayerFragment
 import com.example.simpleplayer.helpers.MQTTClientHelper
 import com.example.simpleplayer.managers.MQTTReceiveManager
+import com.example.simpleplayer.managers.PreferenceManager
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended
 import org.eclipse.paho.client.mqttv3.MqttException
 import org.eclipse.paho.client.mqttv3.MqttMessage
+import org.json.JSONObject
 import java.util.Timer
 import kotlin.concurrent.schedule
 
@@ -20,11 +26,17 @@ class MainActivity : AppCompatActivity() {
         MQTTClientHelper(this)
     }
 
+    private val mqttReceiveManager by lazy {
+        MQTTReceiveManager()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        setMqttCallback()
+//        setMqttCallback()
+
+        switchFragment(PlayerFragment().newInstance())
 
     }
 
@@ -42,7 +54,7 @@ class MainActivity : AppCompatActivity() {
             @Throws(Exception::class)
             override fun messageArrived(topic: String, message: MqttMessage) {
                 Log.d(TAG, "MQTT Message Arrived : Topic : $topic - Message : $message")
-                MQTTReceiveManager(this@MainActivity, topic, message)
+                mqttReceiveManager.setAction(this@MainActivity, applicationContext, topic, message)
             }
 
             override fun deliveryComplete(token: IMqttDeliveryToken?) {
@@ -70,6 +82,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    fun switchFragment(fragment: Fragment) {
+        Log.w(TAG, "Switch Fragment")
+        val fm: FragmentManager = supportFragmentManager
+        val transaction: FragmentTransaction = fm.beginTransaction()
+        transaction.replace(R.id.container, fragment)
+        transaction.commit()
     }
 
     companion object {

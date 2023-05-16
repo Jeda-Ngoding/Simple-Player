@@ -1,18 +1,26 @@
 package com.example.simpleplayer.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.simpleplayer.R
+import com.example.simpleplayer.models.Content
+import com.example.simpleplayer.models.ItemPlaylist
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.source.MediaSource
+import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
+import java.util.Calendar
 
 
 class PlayerFragment : Fragment(), Player.Listener {
@@ -20,8 +28,10 @@ class PlayerFragment : Fragment(), Player.Listener {
     private var playbackPosition = 0L
     private var playWhenReady = true
     private var playerExoView: StyledPlayerView? = null
+    private lateinit var playlistContent: ArrayList<ItemPlaylist>
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        playlistContent = createPlaylist()
     }
 
     override fun onCreateView(
@@ -33,19 +43,35 @@ class PlayerFragment : Fragment(), Player.Listener {
         return view
     }
 
-    private fun initPlayer() {
+    private fun startPlayer() {
+        var playItemPosition = 0
+        val mainHandler = Handler(Looper.getMainLooper())
+        mainHandler.post(object : Runnable {
+            override fun run() {
+                Log.d(TAG, "Play Position : $playItemPosition")
+                if (playItemPosition >= playlistContent.size) {
+                    playItemPosition = 0
+                }
+
+                if (player != null) {
+                    releasePlayer()
+                }
+
+                initPlayer(playlistContent[playItemPosition].content.url)
+                playItemPosition++
+                mainHandler.postDelayed(this, 3000)
+            }
+        })
+    }
+
+    private fun initPlayer(videoURL: String) {
         player = activity?.let { ExoPlayer.Builder(it.applicationContext).build() }
         player?.playWhenReady = true
         playerExoView?.player = player
-        val mediaItem =
-            MediaItem.fromUri("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8")
-        val mediaSource =
-            HlsMediaSource.Factory(DefaultHttpDataSource.Factory()).createMediaSource(mediaItem)
-        player?.setMediaSource(mediaSource)
+        playerExoView?.useController = false
         player?.seekTo(playbackPosition)
         player?.playWhenReady = playWhenReady
-        player?.prepare()
-
+        player?.prepare(buildMediaSource(videoURL), true, false)
     }
 
     private fun releasePlayer() {
@@ -60,9 +86,7 @@ class PlayerFragment : Fragment(), Player.Listener {
 
     override fun onStart() {
         super.onStart()
-        if (Util.SDK_INT >= 24) {
-            initPlayer()
-        }
+        startPlayer()
     }
 
     override fun onStop() {
@@ -74,9 +98,7 @@ class PlayerFragment : Fragment(), Player.Listener {
 
     override fun onResume() {
         super.onResume()
-        if (Util.SDK_INT < 24) {
-            initPlayer()
-        }
+        startPlayer()
     }
 
     override fun onPause() {
@@ -94,6 +116,59 @@ class PlayerFragment : Fragment(), Player.Listener {
 
     fun newInstance(): PlayerFragment {
         return PlayerFragment()
+    }
+
+    private fun buildMediaSource(videoURL: String): MediaSource {
+        val dataSourceFactory: DataSource.Factory = DefaultHttpDataSource.Factory()
+        return ProgressiveMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(videoURL))
+    }
+
+    private fun createPlaylist(): ArrayList<ItemPlaylist> {
+
+        val dataContent: Array<String> = arrayOf(
+            "https://static.videezy.com/system/resources/previews/000/053/846/original/Comp_9_4.mp4",
+            "https://static.videezy.com/system/resources/previews/000/055/878/original/prts_new_01__5_.mp4",
+            "https://static.videezy.com/system/resources/previews/000/044/903/original/telepoorte_fnl.mp4",
+            "https://static.videezy.com/system/resources/previews/000/044/249/original/01__2822_29.mp4",
+            "https://static.videezy.com/system/resources/previews/000/053/842/original/Comp_7_2.mp4",
+            "https://static.videezy.com/system/resources/previews/000/046/254/original/Comp_1_1_2.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/712/original/visualdesign3.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/578/original/glowartwork32.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/682/original/tunnelmotions34872artworkdesign0001-0600.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/335/original/glowvisual27.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/472/original/artvisual40.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/570/original/glowdesign2.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/643/original/tunnelmotions34854reflectionspace0001-0600.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/519/original/tunnelmotions34903movinglights0001-0600.mp4",
+            "https://static.videezy.com/system/resources/previews/000/055/883/original/tunnelmotions34810metaltunnel0001-0600.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/362/original/artvisual42.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/628/original/glowartwork17.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/503/original/artworkloop29.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/641/original/artdesign7.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/691/original/tunnelmotions34873artworkdesign0001-0600.mp4",
+            "https://static.videezy.com/system/resources/previews/000/056/732/original/glowartwork21.mp4"
+        )
+
+        val playlistContent: ArrayList<ItemPlaylist> = ArrayList()
+        var count = 0
+        while (count < 10000) {
+
+            playlistContent.add(
+                ItemPlaylist(
+                    "",
+                    Content(
+                        1,
+                        dataContent.random(),
+                        "",
+                        ""
+                    )
+                )
+            )
+
+            count++
+        }
+        return playlistContent
     }
 
     companion object {

@@ -1,35 +1,32 @@
 package com.example.simpleplayer.managers
 
+import android.app.Activity
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import com.example.simpleplayer.MainActivity
 import com.example.simpleplayer.actions.DownloadContent
 import com.example.simpleplayer.constants.*
+import com.example.simpleplayer.fragments.PlayerFragment
 import org.json.JSONArray
 import org.json.JSONObject
 
-class MQTTReceiveManager(context: Context, topic: String, data: Any) : BroadcastReceiver() {
+class MQTTReceiveManager : BroadcastReceiver() {
 
-    private var mContext: Context
-    private var mTopic: String
-    private var mAction: String
-    private var mData: JSONObject
+    private lateinit var mActivity: MainActivity
+    private lateinit var mContext: Context
+    private lateinit var mTopic: String
+    private lateinit var mAction: String
+    private lateinit var mData: JSONObject
 
-    init {
+    fun setAction(activity: MainActivity, context: Context, topic: String, data: Any) {
+        Log.d(TAG, "Topic : $mTopic - Action : $mAction - Data : $mData")
+        mActivity = activity
         mContext = context
         mTopic = topic
         mData = JSONObject(data.toString())
         mAction = mData.optString("action")
-
-
-        Log.d(TAG, "Topic : $mTopic - Action : $mAction - Data : $mData")
-
-        setAction()
-
-    }
-
-    private fun setAction() {
         when (mAction) {
             MQTT_ACTION_CONTENT_DOWNLOAD -> object : DownloadContent(
                 mContext,
@@ -66,7 +63,7 @@ class MQTTReceiveManager(context: Context, topic: String, data: Any) : Broadcast
 
             MQTT_ACTION_CONTENT_PLAY -> {
                 Log.d(TAG, "Topic : $mTopic - Action : $mAction == $MQTT_ACTION_CONTENT_PLAY")
-                FragmentManagers(mContext, FRAGMENT_PLAYER)
+                mActivity.switchFragment(PlayerFragment().newInstance())
             }
 
             MQTT_ACTION_CONTENT_STOP -> {
@@ -80,6 +77,6 @@ class MQTTReceiveManager(context: Context, topic: String, data: Any) : Broadcast
     }
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        Log.d(TAG, "On Receive ${context.toString()} - ${intent.toString()}")
+
     }
 }
