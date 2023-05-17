@@ -89,8 +89,12 @@ class MQTTClientHelper(context: Context) {
     }
 
     fun destroy() {
-        mqttAndroidClient.unregisterResources()
-        mqttAndroidClient.disconnect()
+        try {
+            mqttAndroidClient.unregisterResources()
+            mqttAndroidClient.disconnect()
+        } catch (ex: MqttException) {
+            Log.d(TAG, ex.toString())
+        }
     }
 
     companion object {

@@ -1,5 +1,7 @@
 package com.example.simpleplayer.fragments
 
+import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -7,6 +9,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import com.example.simpleplayer.R
 import com.example.simpleplayer.models.Content
@@ -20,7 +23,9 @@ import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.Util
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 
 class PlayerFragment : Fragment(), Player.Listener {
@@ -29,6 +34,8 @@ class PlayerFragment : Fragment(), Player.Listener {
     private var playWhenReady = true
     private var playerExoView: StyledPlayerView? = null
     private lateinit var playlistContent: ArrayList<ItemPlaylist>
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         playlistContent = createPlaylist()
@@ -43,27 +50,55 @@ class PlayerFragment : Fragment(), Player.Listener {
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        startPlayer()
+    }
+
     private fun startPlayer() {
         var playItemPosition = 0
         val mainHandler = Handler(Looper.getMainLooper())
         mainHandler.post(object : Runnable {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun run() {
-                Log.d(TAG, "Play Position : $playItemPosition")
+
+                val calendar = Calendar.getInstance()
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+
                 if (playItemPosition >= playlistContent.size) {
                     playItemPosition = 0
                 }
 
-                if (player != null) {
-                    releasePlayer()
+                var url = ""
+
+                playlistContent.map {
+                    if (dateFormat.format(calendar.time) == it.timestamp) {
+                        Log.d(
+                            TAG,
+                            "Item To Play : $it"
+                        )
+                        url = it.content.url
+                    }
                 }
 
-                initPlayer(playlistContent[playItemPosition].content.url)
-                playItemPosition++
-                mainHandler.postDelayed(this, 3000)
+
+                if (url !== "") {
+
+                    if (player != null) {
+                        releasePlayer()
+                    }
+
+                    initPlayer(url)
+                    playItemPosition++
+                }
+
+
+                mainHandler.postDelayed(this, 1000)
             }
         })
     }
 
+    @Suppress("DEPRECATION")
     private fun initPlayer(videoURL: String) {
         player = activity?.let { ExoPlayer.Builder(it.applicationContext).build() }
         player?.playWhenReady = true
@@ -83,22 +118,11 @@ class PlayerFragment : Fragment(), Player.Listener {
         }
     }
 
-
-    override fun onStart() {
-        super.onStart()
-        startPlayer()
-    }
-
     override fun onStop() {
         super.onStop()
         if (Util.SDK_INT >= 24) {
             releasePlayer()
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        startPlayer()
     }
 
     override fun onPause() {
@@ -124,6 +148,8 @@ class PlayerFragment : Fragment(), Player.Listener {
             .createMediaSource(MediaItem.fromUri(videoURL))
     }
 
+    @SuppressLint("SimpleDateFormat")
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun createPlaylist(): ArrayList<ItemPlaylist> {
 
         val dataContent: Array<String> = arrayOf(
@@ -149,16 +175,18 @@ class PlayerFragment : Fragment(), Player.Listener {
             "https://static.videezy.com/system/resources/previews/000/056/691/original/tunnelmotions34873artworkdesign0001-0600.mp4",
             "https://static.videezy.com/system/resources/previews/000/056/732/original/glowartwork21.mp4"
         )
-
         val playlistContent: ArrayList<ItemPlaylist> = ArrayList()
-        var count = 0
-        while (count < 10000) {
+        val calendar = Calendar.getInstance()
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
 
+        val listSize = 2500
+        val intervalSeconds = 10 // Interval in seconds
+        (0 until listSize).map {
             playlistContent.add(
                 ItemPlaylist(
-                    "",
+                    dateFormat.format(calendar.time),
                     Content(
-                        1,
+                        it,
                         dataContent.random(),
                         "",
                         ""
@@ -166,8 +194,9 @@ class PlayerFragment : Fragment(), Player.Listener {
                 )
             )
 
-            count++
+            calendar.add(Calendar.SECOND, intervalSeconds)
         }
+
         return playlistContent
     }
 
